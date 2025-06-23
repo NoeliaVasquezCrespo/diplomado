@@ -11,6 +11,7 @@ router
     .route('/')
     .get(userController.getUsers)
     .post(validate(createUserSchema, 'body'), userController.createUser);
+    
 
 router
     .route('/:id')
@@ -19,6 +20,8 @@ router
     .delete(authenticateToken, userController.deleteUser)
     .patch(authenticateToken, userController.activateInactivate); 
     
-router.get('/:id/tasks', authenticateToken, userController.getTasks);    
+router.get('/:id/tasks', authenticateToken, userController.getTasks);  
+
+router.get('/list/pagination', userController.getUsersListPagination);
 
 export default router;

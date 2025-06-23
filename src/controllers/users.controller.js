@@ -2,6 +2,7 @@ import { User } from '../models/user.js';
 import { Task } from '../models/task.js';
 import { Status } from '../constants/index.js';
 import { encriptar } from '../common/bcrypt.js';
+import { Op } from 'sequelize';
 
 async function getUsers(req, res, next) {
   try {
@@ -135,6 +136,40 @@ async function getTasks(req, res, next) {
   }
 }
 
+
+async function getUsersListPagination (req, res, next) {
+  const { page = 1, limit = 10 } = req.query;
+  const offset = (page - 1) * limit;
+  const search = req.query.search || '';
+  const orderBy = req.query.orderBy || 'id';
+  const orderDir = req.query.orderDir || 'DESC';
+
+  try {
+    const { count, rows } = await User.findAndCountAll({
+      attributes: ["id", "username", "status"],
+      order: [["id", "DESC"]],
+      where: {
+        username: {
+          [Op.like]: `%${search}%`
+        },
+      },
+      limit: parseInt(limit),
+      offset: parseInt(offset),
+      order: [[orderBy, orderDir]],
+    });
+
+    res.json({
+      total: count,
+      page: parseInt(page),
+      pages: Math.ceil(count / limit),
+      data: rows,
+    });
+  } catch (error) {
+    next(error);
+  }
+
+}
+
 export default {
   getUsers,
   createUser,
@@ -142,5 +177,6 @@ export default {
   updateUser,
   deleteUser,
   activateInactivate,
-  getTasks
+  getTasks,
+  getUsersListPagination
 };
